@@ -1139,6 +1139,82 @@ function App() {
         </DialogContent>
       </Dialog>
 
+      {/* Menu Manager Dialog */}
+      <Dialog open={isMenuManagerVisible} onOpenChange={setIsMenuManagerVisible}>
+        <DialogContent className="bg-[#1C1C1E] border-white/10 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <FileSpreadsheet className="h-5 w-5 text-[#0A84FF]" />
+              Menu Beheren
+            </DialogTitle>
+            <DialogDescription className="text-[#86868B]">
+              Download het huidige menu als Excel of upload een nieuw menu bestand.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {/* Download Section */}
+            <div className="p-4 rounded-lg bg-[#2C2C2E] border border-white/10">
+              <h3 className="text-sm font-medium text-white mb-2">Menu Downloaden</h3>
+              <p className="text-xs text-[#86868B] mb-3">
+                Download het huidige menu als Excel bestand om aan te passen.
+              </p>
+              <Button
+                onClick={handleDownloadMenu}
+                className="w-full bg-[#0A84FF] hover:bg-[#0077ED] text-white"
+                data-testid="download-menu-button"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download Menu (.xlsx)
+              </Button>
+            </div>
+
+            {/* Upload Section */}
+            <div className="p-4 rounded-lg bg-[#2C2C2E] border border-white/10">
+              <h3 className="text-sm font-medium text-white mb-2">Menu Uploaden</h3>
+              <p className="text-xs text-[#86868B] mb-3">
+                Upload een Excel bestand met kolommen: Naam, Categorie, Prijs
+              </p>
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept=".xlsx,.xls"
+                onChange={handleUploadMenu}
+                className="hidden"
+                data-testid="menu-file-input"
+              />
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingMenu}
+                className="w-full bg-[#30D158] hover:bg-[#28B84C] text-white"
+                data-testid="upload-menu-button"
+              >
+                {isUploadingMenu ? (
+                  <>Uploaden...</>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Menu (.xlsx)
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* Info */}
+            <div className="p-3 rounded-lg bg-[#FF9F0A]/10 border border-[#FF9F0A]/20">
+              <p className="text-xs text-[#FF9F0A]">
+                ⚠️ Let op: Bij uploaden wordt het hele menu vervangen. Huidige items worden overschreven.
+              </p>
+            </div>
+
+            {/* Current menu stats */}
+            <div className="text-center text-xs text-[#86868B]">
+              Huidig menu: {menu.length} items in {Object.keys(menuByCategory).length} categorieën
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Reset Confirmation Dialog */}
       <AlertDialog open={isResetConfirmVisible} onOpenChange={setIsResetConfirmVisible}>
         <AlertDialogContent className="bg-[#1C1C1E] border-white/10 text-white">

@@ -994,7 +994,7 @@ function App() {
 
       {/* Activity Log Dialog */}
       <Dialog open={isLogVisible} onOpenChange={setIsLogVisible}>
-        <DialogContent className="bg-[#1C1C1E] border-white/10 text-white max-w-3xl max-h-[80vh]">
+        <DialogContent className="bg-[#1C1C1E] border-white/10 text-white max-w-4xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle className="text-xl">Activiteitenlogboek</DialogTitle>
             <DialogDescription className="text-[#86868B]">
@@ -1008,18 +1008,28 @@ function App() {
                   <TableHead className="text-[#86868B]">Tijdstip</TableHead>
                   <TableHead className="text-[#86868B]">Actie</TableHead>
                   <TableHead className="text-[#86868B]">Details</TableHead>
+                  <TableHead className="text-[#86868B]">Apparaat</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {activityLog.map((log) => (
-                  <TableRow key={log.id} className="border-white/10">
-                    <TableCell className="text-[#BFBFBF] text-xs">
-                      {new Date(log.timestamp).toLocaleString("nl-NL")}
-                    </TableCell>
-                    <TableCell className="text-white">{log.action}</TableCell>
-                    <TableCell className="text-[#BFBFBF]">{log.details}</TableCell>
-                  </TableRow>
-                ))}
+                {activityLog.map((log) => {
+                  const deviceInfo = parseDeviceInfo(log.device_info);
+                  return (
+                    <TableRow key={log.id} className="border-white/10">
+                      <TableCell className="text-[#BFBFBF] text-xs whitespace-nowrap">
+                        {new Date(log.timestamp).toLocaleString("nl-NL")}
+                      </TableCell>
+                      <TableCell className="text-white">{log.action}</TableCell>
+                      <TableCell className="text-[#BFBFBF]">{log.details}</TableCell>
+                      <TableCell className="text-[#86868B] text-xs">
+                        <div className="flex flex-col">
+                          <span className="text-[#BFBFBF]">{deviceInfo.device}</span>
+                          <span className="text-[#6E6E73]">{deviceInfo.browser}</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </ScrollArea>

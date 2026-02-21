@@ -947,7 +947,27 @@ function App() {
                   Betalingsstatus
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
+                {/* Payment Link - Above Checklist */}
+                {settings.payment_link && (
+                  <div className="p-4 rounded-lg bg-[#30D158]/10 border border-[#30D158]/20">
+                    <p className="text-sm text-[#BFBFBF] mb-3">
+                      Graag je deel overmaken via de onderstaande link:
+                    </p>
+                    <Button
+                      asChild
+                      className="w-full bg-[#30D158] hover:bg-[#28B84C] text-white font-medium"
+                      data-testid="payment-link-button"
+                    >
+                      <a href={settings.payment_link} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Betaalverzoek openen
+                      </a>
+                    </Button>
+                  </div>
+                )}
+
+                {/* Payment Checklist */}
                 {orders.length === 0 ? (
                   <p className="text-[#6E6E73] text-center py-4">Geen bestellingen om te betalen</p>
                 ) : (
@@ -994,20 +1014,6 @@ function App() {
           </div>
         </div>
       </main>
-
-      {/* Footer - Payment Link */}
-      {settings.payment_link && (
-        <footer className="fixed bottom-0 left-0 right-0 glass border-t border-white/10 z-50">
-          <div className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-3">
-            <p className="text-sm text-[#86868B]">
-              Graag je deel overmaken via de onderstaande link:
-            </p>
-            <Button
-              asChild
-              className="bg-[#30D158] hover:bg-[#28B84C] text-white font-medium"
-              data-testid="payment-link-button"
-            >
-              <a href={settings.payment_link} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Betaalverzoek openen
               </a>

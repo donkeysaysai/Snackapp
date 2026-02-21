@@ -352,8 +352,17 @@ async def get_activity_log():
     return logs
 
 @api_router.post("/activity-log", response_model=ActivityLogEntry)
-async def create_activity_log(log_data: ActivityLogCreate):
-    entry = ActivityLogEntry(**log_data.model_dump())
+async def create_activity_log(log_data: ActivityLogCreate, request: Request):
+    # Get client IP from various headers (handles proxies)
+    client_ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+    if not client_ip:
+        client_ip = request.headers.get("X-Real-IP", "")
+    if not client_ip:
+        client_ip = request.client.host if request.client else "unknown"
+    
+    entry_data = log_data.model_dump()
+    entry_data["client_ip"] = client_ip
+    entry = ActivityLogEntry(**entry_data)
     await db.activity_log.insert_one(entry.model_dump())
     return entry
 

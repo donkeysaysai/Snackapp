@@ -532,7 +532,19 @@ function App() {
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-white" data-testid="app-title">
               P&TA Snack Bestel App
             </h1>
-            <p className="text-sm text-[#86868B]">Voor de lekkerste kantoorlunch</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-[#86868B]">Voor de lekkerste kantoorlunch</p>
+              <span className="text-[#6E6E73]">·</span>
+              <a
+                href="https://cafetariarex.nl/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-[#0A84FF] hover:text-[#0077ED] transition-colors"
+                data-testid="rex-link"
+              >
+                cafetariarex.nl
+              </a>
+            </div>
           </div>
 
           <DropdownMenu open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>

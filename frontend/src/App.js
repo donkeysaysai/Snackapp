@@ -297,13 +297,25 @@ function App() {
       setOrders([...orders, res.data]);
       logActivity("Bestelling geplaatst", `${customerName} heeft besteld`, res.data.id);
       
+      const nameLower = customerName.trim().toLowerCase();
+      
       // Easter egg for Jilles
-      if (customerName.trim().toLowerCase() === "jilles") {
+      if (nameLower === "jilles") {
         toast.success("Welkom terug, Snackkoning Jilles! 👑", {
           duration: 4000,
           style: {
             background: "linear-gradient(135deg, #FFD700 0%, #FFA500 100%)",
             color: "#000",
+            fontWeight: "bold",
+          },
+        });
+      // Easter egg for Giorni
+      } else if (nameLower === "giorni") {
+        toast.success("Speknek, vind Esmee dat wel goed?! 🐷", {
+          duration: 4000,
+          style: {
+            background: "linear-gradient(135deg, #FF69B4 0%, #FF1493 100%)",
+            color: "#FFF",
             fontWeight: "bold",
           },
         });

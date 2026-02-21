@@ -334,7 +334,7 @@ function App() {
         });
       // Easter egg for Giorni
       } else if (nameLower === "giorni") {
-        toast.success("Speknek, vind Esmee dat wel goed?! 🐷", {
+        toast.success("Speknek, Vindt Esmee dat wel goed?!? 🐷", {
           duration: 4000,
           style: {
             background: "linear-gradient(135deg, #FF69B4 0%, #FF1493 100%)",

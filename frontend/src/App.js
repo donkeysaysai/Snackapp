@@ -476,13 +476,14 @@ function App() {
 
   // Export activity log to CSV
   const handleExportLog = () => {
-    const headers = ["Timestamp", "Action", "Details", "Order ID", "Device Info"];
+    const headers = ["Timestamp", "Action", "Details", "Order ID", "Device Info", "IP Address"];
     const rows = activityLog.map((log) => [
       log.timestamp,
       log.action,
       log.details,
       log.order_id || "",
       log.device_info || "",
+      log.client_ip || "",
     ]);
     const csv = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });

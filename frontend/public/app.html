@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P&TA Snack Bestel App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #050505;
+            color: #F5F5F7;
+            min-height: 100vh;
+        }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+        .glass {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        select, input {
+            background-color: #1C1C1E;
+            color: #F5F5F7;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: #0A84FF;
+        }
+        .btn-primary {
+            background: #0A84FF;
+            transition: background 0.2s;
+        }
+        .btn-primary:hover { background: #0077ED; }
+        .btn-success {
+            background: #30D158;
+            transition: background 0.2s;
+        }
+        .btn-success:hover { background: #28B84C; }
+        .btn-danger {
+            background: #FF453A;
+            transition: background 0.2s;
+        }
+        .btn-danger:hover { background: #FF3B30; }
+        .card {
+            background: #151516;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+        }
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background: #1C1C1E;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #151516; }
+        ::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script>
+        // ===================== DATA =====================
+        const MENU_DATA = [
+            // SNACKS
+            {id: "1", name: "Frikandel", category: "SNACKS", price: 2.25},
+            {id: "2", name: "Frikandel Speciaal", category: "SNACKS", price: 2.75},
+            {id: "3", name: "Kroket", category: "SNACKS", price: 2.50},
+            {id: "4", name: "Rundvlees Kroket", category: "SNACKS", price: 3.30},
+            {id: "5", name: "Goulash Kroket", category: "SNACKS", price: 3.65},
+            {id: "6", name: "Berehap", category: "SNACKS", price: 3.50},
+            {id: "7", name: "Bitterballen (6)", category: "SNACKS", price: 3.95},
+            {id: "8", name: "Bamischijf", category: "SNACKS", price: 2.60},
+            {id: "9", name: "Nasischijf", category: "SNACKS", price: 2.60},
+            {id: "10", name: "Loempia", category: "SNACKS", price: 4.50},
+            // PATAT
+            {id: "11", name: "Patat", category: "PATAT", price: 2.60},
+            {id: "12", name: "Grote Patat", category: "PATAT", price: 3.35},
+            {id: "13", name: "Raspatat", category: "PATAT", price: 2.60},
+            {id: "14", name: "Grote Raspatat", category: "PATAT", price: 3.35},
+            // PATAT SPECIALS
+            {id: "15", name: "Kapsalon", category: "PATAT SPECIALS", price: 11.00},
+            {id: "16", name: "Patat Speciaal", category: "PATAT SPECIALS", price: 4.50},
+            // BURGERS
+            {id: "17", name: "Elite Burger", category: "BURGERS", price: 6.00},
+            {id: "18", name: "Rex Burger", category: "BURGERS", price: 7.00},
+            {id: "19", name: "Macho Burger", category: "BURGERS", price: 8.75},
+            {id: "20", name: "Chickenburger", category: "BURGERS", price: 7.00},
+            // VIS SNACKS
+            {id: "21", name: "Kibbeling + Saus", category: "VIS SNACKS", price: 8.50},
+            {id: "22", name: "Lekkerbek", category: "VIS SNACKS", price: 6.00},
+            // KIP SNACKS
+            {id: "23", name: "Kipnuggets (6)", category: "KIP SNACKS", price: 3.25},
+            {id: "24", name: "Kipcorn", category: "KIP SNACKS", price: 2.85},
+            // VEGA SNACKS
+            {id: "25", name: "Kaassouffle", category: "VEGA/VEGAN SNACKS", price: 2.25},
+            {id: "26", name: "Groentekroket", category: "VEGA/VEGAN SNACKS", price: 2.25},
+            // SAUS
+            {id: "27", name: "Frietsaus", category: "SAUS", price: 0.50},
+            {id: "28", name: "Mayonaise", category: "SAUS", price: 0.50},
+            {id: "29", name: "Ketchup", category: "SAUS", price: 0.50},
+            {id: "30", name: "Satésaus", category: "SAUS", price: 0.75},
+            // DRANKEN
+            {id: "31", name: "Monster Energy", category: "DRANKEN", price: 3.50},
+            {id: "32", name: "Monster Ultra White", category: "DRANKEN", price: 3.50},
+            {id: "33", name: "Monster Loco Mango", category: "DRANKEN", price: 3.50},
+            {id: "34", name: "Monster Ultra Strawberry Dreams", category: "DRANKEN", price: 3.50},
+        ];
+
+        const CATEGORY_ORDER = ["SNACKS", "PATAT", "PATAT SPECIALS", "BURGERS", "VIS SNACKS", "KIP SNACKS", "VEGA/VEGAN SNACKS", "SAUS", "DRANKEN"];
+
+        // ===================== STATE =====================
+        let state = {
+            orders: JSON.parse(localStorage.getItem('pta_orders') || '[]'),
+            settings: JSON.parse(localStorage.getItem('pta_settings') || '{"payment_link":"","is_edit_mode":false}'),
+            activityLog: JSON.parse(localStorage.getItem('pta_activity_log') || '[]'),
+            isAdmin: false,
+            showSettings: false,
+            showLog: false,
+            showResetConfirm: false,
+            customerName: '',
+            orderItems: [{menu_item_id: '', quantity: 1}]
+        };
+
+        // ===================== HELPERS =====================
+        const formatPrice = (price) => new Intl.NumberFormat('nl-NL', {style: 'currency', currency: 'EUR'}).format(price);
+        
+        const getDeviceId = () => {
+            let id = localStorage.getItem('pta_device_id');
+            if (!id) {
+                id = 'DEV-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+                localStorage.setItem('pta_device_id', id);
+            }
+            return id;
+        };
+
+        const saveState = () => {
+            localStorage.setItem('pta_orders', JSON.stringify(state.orders));
+            localStorage.setItem('pta_settings', JSON.stringify(state.settings));
+            localStorage.setItem('pta_activity_log', JSON.stringify(state.activityLog));
+        };
+
+        const logActivity = (action, details) => {
+            state.activityLog.unshift({
+                id: Date.now().toString(),
+                timestamp: new Date().toISOString(),
+                action,
+                details,
+                device_id: getDeviceId()
+            });
+            if (state.activityLog.length > 100) state.activityLog.pop();
+            saveState();
+        };
+
+        const showToast = (message, type = 'success', customStyle = null) => {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            if (customStyle) {
+                toast.style.background = customStyle.background;
+                toast.style.color = customStyle.color;
+                toast.style.fontWeight = customStyle.fontWeight || 'normal';
+            } else {
+                toast.style.background = type === 'success' ? '#30D158' : '#FF453A';
+                toast.style.color = 'white';
+            }
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        };
+
+        const getMenuByCategory = () => {
+            const grouped = {};
+            MENU_DATA.forEach(item => {
+                if (!grouped[item.category]) grouped[item.category] = [];
+                grouped[item.category].push(item);
+            });
+            return grouped;
+        };
+
+        const getTotalOverview = () => {
+            const overview = {};
+            state.orders.forEach(order => {
+                order.items.forEach(item => {
+                    if (!overview[item.name]) overview[item.name] = {quantity: 0, price: item.price};
+                    overview[item.name].quantity += item.quantity;
+                });
+            });
+            return Object.entries(overview).map(([name, data]) => ({
+                name, quantity: data.quantity, subtotal: data.quantity * data.price
+            })).sort((a, b) => b.quantity - a.quantity);
+        };
+
+        const getGrandTotal = () => state.orders.reduce((sum, o) => sum + o.total_price, 0);
+
+        // ===================== ACTIONS =====================
+        const placeOrder = () => {
+            if (!state.customerName.trim()) {
+                showToast('Vul alsjeblieft een naam in.', 'error');
+                return;
+            }
+            const validItems = state.orderItems.filter(i => i.menu_item_id && i.quantity > 0);
+            if (validItems.length === 0) {
+                showToast('Voeg een geldige snack toe.', 'error');
+                return;
+            }
+
+            const items = validItems.map(i => {
+                const menuItem = MENU_DATA.find(m => m.id === i.menu_item_id);
+                return {menu_item_id: menuItem.id, name: menuItem.name, quantity: i.quantity, price: menuItem.price};
+            });
+            const total = items.reduce((sum, i) => sum + i.quantity * i.price, 0);
+
+            const order = {
+                id: Date.now().toString(),
+                customer_name: state.customerName.trim(),
+                items,
+                total_price: total,
+                is_paid: false,
+                created_at: new Date().toISOString()
+            };
+            state.orders.push(order);
+            logActivity('Bestelling geplaatst', `${state.customerName} heeft besteld`);
+
+            // Easter eggs
+            const nameLower = state.customerName.trim().toLowerCase();
+            if (nameLower === 'jilles') {
+                showToast('Welkom terug, Snackkoning Jilles! 👑', 'success', {
+                    background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                    color: '#000',
+                    fontWeight: 'bold'
+                });
+            } else if (nameLower === 'giorni') {
+                showToast('Speknek, Vindt Esmee dat wel goed?!? 🐷', 'success', {
+                    background: 'linear-gradient(135deg, #FF69B4 0%, #FF1493 100%)',
+                    color: '#FFF',
+                    fontWeight: 'bold'
+                });
+            } else {
+                showToast(`Bestelling van ${state.customerName} is geplaatst!`);
+            }
+
+            state.customerName = '';
+            state.orderItems = [{menu_item_id: '', quantity: 1}];
+            saveState();
+            render();
+        };
+
+        const togglePayment = (orderId) => {
+            const order = state.orders.find(o => o.id === orderId);
+            if (order) {
+                order.is_paid = !order.is_paid;
+                logActivity('Betaling gewijzigd', `${order.customer_name}: ${order.is_paid ? 'Betaald' : 'Niet betaald'}`);
+                saveState();
+                render();
+            }
+        };
+
+        const updateOrderItem = (orderId, itemIndex, newQty) => {
+            const order = state.orders.find(o => o.id === orderId);
+            if (!order) return;
+            if (newQty <= 0) {
+                order.items.splice(itemIndex, 1);
+                if (order.items.length === 0) {
+                    state.orders = state.orders.filter(o => o.id !== orderId);
+                }
+            } else {
+                order.items[itemIndex].quantity = newQty;
+            }
+            order.total_price = order.items.reduce((sum, i) => sum + i.quantity * i.price, 0);
+            logActivity('Item aangepast', `Bestelling van ${order.customer_name} bijgewerkt`);
+            saveState();
+            render();
+        };
+
+        const resetApp = () => {
+            state.orders = [];
+            logActivity('App gereset', 'Alle bestellingen verwijderd');
+            saveState();
+            state.showResetConfirm = false;
+            showToast('App is gereset');
+            render();
+        };
+
+        const exportEmail = () => {
+            const overview = getTotalOverview();
+            const body = overview.map(i => `${i.quantity}x ${i.name} - ${formatPrice(i.subtotal)}`).join('\n');
+            const total = `\n\nTotaal: ${formatPrice(getGrandTotal())}`;
+            window.location.href = `mailto:info@cafetariarex.nl?subject=Bestelling P%26TA&body=${encodeURIComponent(body + total)}`;
+        };
+
+        const exportLog = () => {
+            const headers = ['Timestamp', 'Action', 'Details', 'Device ID'];
+            const rows = state.activityLog.map(l => [l.timestamp, l.action, l.details, l.device_id || '-']);
+            const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+            const blob = new Blob([csv], {type: 'text/csv'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `activity_log_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        };
+
+        // ===================== RENDER =====================
+        const render = () => {
+            const menuByCategory = getMenuByCategory();
+            const totalOverview = getTotalOverview();
+            const grandTotal = getGrandTotal();
+
+            document.getElementById('app').innerHTML = `
+                <!-- Header -->
+                <header class="sticky top-0 z-40 glass border-b border-white/10">
+                    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+                        <div>
+                            <h1 class="text-2xl md:text-3xl font-semibold text-white">P&TA Snack Bestel App</h1>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <p class="text-sm text-gray-500">Voor de perfecte zoutbalans en de beste chemie op de afdeling.</p>
+                                <span class="text-gray-600">·</span>
+                                <a href="https://cafetariarex.nl/" target="_blank" class="text-xs text-blue-500 hover:text-blue-400">cafetariarex.nl</a>
+                            </div>
+                        </div>
+                        <button onclick="state.showSettings = !state.showSettings; render();" class="p-2 rounded-lg hover:bg-white/10">
+                            <i data-lucide="settings" class="w-5 h-5 text-gray-500"></i>
+                        </button>
+                    </div>
+                </header>
+
+                ${state.showSettings ? renderSettings() : ''}
+
+                <!-- Main Content -->
+                <main class="max-w-7xl mx-auto px-4 py-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <!-- Left Column - Order Form -->
+                        <div class="lg:col-span-4">
+                            <div class="card p-6 sticky top-24">
+                                <h2 class="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                                    <i data-lucide="shopping-bag" class="w-5 h-5 text-blue-500"></i>
+                                    Nieuwe Bestelling
+                                </h2>
+                                
+                                <div class="mb-4">
+                                    <label class="text-xs uppercase tracking-wider text-gray-500 mb-2 block">Naam</label>
+                                    <input type="text" placeholder="Naam van collega" value="${state.customerName}"
+                                        oninput="state.customerName = this.value"
+                                        class="w-full h-11 px-3 rounded-lg">
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="text-xs uppercase tracking-wider text-gray-500 mb-2 block">Snacks</label>
+                                    ${state.orderItems.map((item, idx) => `
+                                        <div class="flex gap-2 mb-2">
+                                            <select class="flex-1 h-11 px-3 rounded-lg" value="${item.menu_item_id}"
+                                                onchange="state.orderItems[${idx}].menu_item_id = this.value; render();">
+                                                <option value="">-- Selecteer Snack --</option>
+                                                ${CATEGORY_ORDER.map(cat => menuByCategory[cat] ? `
+                                                    <optgroup label="${cat}">
+                                                        ${menuByCategory[cat].map(m => `
+                                                            <option value="${m.id}" ${item.menu_item_id === m.id ? 'selected' : ''}>
+                                                                ${m.name} - ${formatPrice(m.price)}
+                                                            </option>
+                                                        `).join('')}
+                                                    </optgroup>
+                                                ` : '').join('')}
+                                            </select>
+                                            <input type="number" min="1" value="${item.quantity}" 
+                                                onchange="state.orderItems[${idx}].quantity = parseInt(this.value) || 1; render();"
+                                                class="w-16 h-11 px-2 rounded-lg text-center">
+                                            ${state.orderItems.length > 1 ? `
+                                                <button onclick="state.orderItems.splice(${idx}, 1); render();"
+                                                    class="h-11 w-11 flex items-center justify-center rounded-lg text-red-500 hover:bg-red-500/10">
+                                                    <i data-lucide="x" class="w-4 h-4"></i>
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    `).join('')}
+                                    <button onclick="state.orderItems.push({menu_item_id: '', quantity: 1}); render();"
+                                        class="w-full py-2 text-blue-500 hover:bg-blue-500/10 rounded-lg flex items-center justify-center gap-2">
+                                        <i data-lucide="plus" class="w-4 h-4"></i> Snack Toevoegen
+                                    </button>
+                                </div>
+
+                                <button onclick="placeOrder();" class="w-full h-12 btn-primary text-white font-medium rounded-lg">
+                                    Bestelling Plaatsen
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="lg:col-span-8 space-y-6">
+                            <!-- Orders List -->
+                            <div class="card p-6">
+                                <h2 class="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                                    <i data-lucide="users" class="w-5 h-5 text-blue-500"></i>
+                                    Wie-heeft-wat-besteld
+                                    ${state.settings.is_edit_mode ? '<span class="ml-2 px-2 py-0.5 text-xs bg-orange-500/20 text-orange-400 rounded">Bewerkmodus</span>' : ''}
+                                </h2>
+                                ${state.orders.length === 0 ? `
+                                    <p class="text-gray-500 text-center py-8">Nog geen bestellingen...</p>
+                                ` : `
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full">
+                                            <thead>
+                                                <tr class="border-b border-white/10">
+                                                    <th class="text-left py-2 text-gray-500 font-medium">Naam</th>
+                                                    <th class="text-left py-2 text-gray-500 font-medium">Bestelling</th>
+                                                    <th class="text-right py-2 text-gray-500 font-medium">Totaalprijs</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${state.orders.map(order => `
+                                                    <tr class="border-b border-white/5">
+                                                        <td class="py-3 text-white font-medium">${order.customer_name}</td>
+                                                        <td class="py-3 text-gray-400">
+                                                            ${order.items.map((item, idx) => state.settings.is_edit_mode ? `
+                                                                <div class="flex items-center gap-2 mb-1">
+                                                                    <input type="number" min="0" value="${item.quantity}"
+                                                                        onchange="updateOrderItem('${order.id}', ${idx}, parseInt(this.value) || 0)"
+                                                                        class="w-14 h-7 px-2 rounded text-center text-sm">
+                                                                    <span class="text-sm">x ${item.name}</span>
+                                                                </div>
+                                                            ` : `<div class="text-sm">${item.quantity}x ${item.name}</div>`).join('')}
+                                                        </td>
+                                                        <td class="py-3 text-right text-white font-medium">${formatPrice(order.total_price)}</td>
+                                                    </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                `}
+                            </div>
+
+                            <!-- Total Overview -->
+                            <div class="card p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h2 class="text-xl font-semibold text-white flex items-center gap-2">
+                                        <i data-lucide="receipt" class="w-5 h-5 text-blue-500"></i>
+                                        Totaaloverzicht
+                                    </h2>
+                                    ${totalOverview.length > 0 ? `
+                                        <button onclick="exportEmail();" class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg flex items-center gap-2">
+                                            <i data-lucide="external-link" class="w-4 h-4"></i> Exporteer naar e-mail
+                                        </button>
+                                    ` : ''}
+                                </div>
+                                ${totalOverview.length === 0 ? `
+                                    <p class="text-gray-500 text-center py-4">Geen items besteld</p>
+                                ` : `
+                                    <table class="w-full">
+                                        <thead>
+                                            <tr class="border-b border-white/10">
+                                                <th class="text-left py-2 text-gray-500 font-medium">Snack</th>
+                                                <th class="text-center py-2 text-gray-500 font-medium">Aantal</th>
+                                                <th class="text-right py-2 text-gray-500 font-medium">Subtotaal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${totalOverview.map(item => `
+                                                <tr class="border-b border-white/5">
+                                                    <td class="py-2 text-white">${item.name}</td>
+                                                    <td class="py-2 text-center text-gray-400">${item.quantity}x</td>
+                                                    <td class="py-2 text-right text-white">${formatPrice(item.subtotal)}</td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                    <div class="mt-4 pt-4 border-t border-white/10 flex justify-between items-center">
+                                        <span class="text-lg font-semibold text-white">Eindtotaal</span>
+                                        <span class="text-2xl font-bold text-green-500">${formatPrice(grandTotal)}</span>
+                                    </div>
+                                `}
+                            </div>
+
+                            <!-- Payment Status -->
+                            <div class="card p-6">
+                                <h2 class="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                                    <i data-lucide="credit-card" class="w-5 h-5 text-blue-500"></i>
+                                    Betalingsstatus
+                                </h2>
+                                ${state.settings.payment_link ? `
+                                    <div class="p-4 rounded-lg bg-green-500/10 border border-green-500/20 mb-4">
+                                        <p class="text-sm text-gray-400 mb-3">Graag je deel overmaken via de onderstaande link:</p>
+                                        <a href="${state.settings.payment_link}" target="_blank" 
+                                            class="block w-full py-3 btn-success text-white text-center font-medium rounded-lg flex items-center justify-center gap-2">
+                                            <i data-lucide="external-link" class="w-4 h-4"></i> Betaalverzoek openen
+                                        </a>
+                                    </div>
+                                ` : ''}
+                                ${state.orders.length === 0 ? `
+                                    <p class="text-gray-500 text-center py-4">Geen bestellingen om te betalen</p>
+                                ` : `
+                                    <div class="space-y-2">
+                                        ${state.orders.map(order => `
+                                            <div class="flex items-center justify-between p-3 rounded-lg bg-gray-800/50 hover:bg-gray-800">
+                                                <label class="flex items-center gap-3 cursor-pointer">
+                                                    <input type="checkbox" ${order.is_paid ? 'checked' : ''} 
+                                                        onchange="togglePayment('${order.id}')"
+                                                        class="w-5 h-5 rounded accent-green-500">
+                                                    <span class="${order.is_paid ? 'text-green-500' : 'text-white'}">${order.customer_name}</span>
+                                                </label>
+                                                <span class="text-sm font-medium ${order.is_paid ? 'text-green-500' : 'text-orange-400'}">
+                                                    ${order.is_paid ? 'Betaald' : 'Nog te betalen'} - ${formatPrice(order.total_price)}
+                                                </span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                </main>
+
+                ${state.showLog ? renderLogModal() : ''}
+                ${state.showResetConfirm ? renderResetModal() : ''}
+            `;
+
+            lucide.createIcons();
+        };
+
+        const renderSettings = () => `
+            <div class="absolute right-4 top-16 w-72 bg-gray-900 border border-white/10 rounded-xl p-4 z-50 shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-sm text-white">Bewerkmodus</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" ${state.settings.is_edit_mode ? 'checked' : ''} 
+                            onchange="state.settings.is_edit_mode = this.checked; saveState(); render();"
+                            class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-700 rounded-full peer peer-checked:bg-blue-500 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+                    </label>
+                </div>
+
+                <div class="border-t border-white/10 pt-4 mb-4">
+                    <label class="text-xs uppercase text-gray-500 mb-2 block">Admin</label>
+                    ${!state.isAdmin ? `
+                        <div class="flex gap-2">
+                            <input type="password" id="adminCode" placeholder="Admin code..." class="flex-1 h-9 px-3 rounded-lg text-sm">
+                            <button onclick="if(document.getElementById('adminCode').value === '1990') { state.isAdmin = true; logActivity('Admin login', 'Admin ingelogd'); render(); } else { showToast('Incorrecte code', 'error'); }"
+                                class="px-3 btn-primary text-white rounded-lg text-sm">✓</button>
+                        </div>
+                    ` : `
+                        <button onclick="state.showLog = true; render();" class="w-full mb-2 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm flex items-center justify-center gap-2">
+                            <i data-lucide="download" class="w-4 h-4"></i> Bekijk Logboek
+                        </button>
+                        <button onclick="state.isAdmin = false; logActivity('Admin logout', 'Admin uitgelogd'); render();" 
+                            class="w-full py-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg text-sm flex items-center justify-center gap-2">
+                            <i data-lucide="log-out" class="w-4 h-4"></i> Uitloggen
+                        </button>
+                    `}
+                </div>
+
+                <div class="border-t border-white/10 pt-4 mb-4">
+                    <label class="text-xs uppercase text-gray-500 mb-2 block">Betaalverzoek Link</label>
+                    <div class="flex gap-2">
+                        <input type="url" id="paymentLink" value="${state.settings.payment_link}" placeholder="Plak hier de link..." class="flex-1 h-9 px-3 rounded-lg text-sm">
+                        <button onclick="state.settings.payment_link = document.getElementById('paymentLink').value; saveState(); showToast('Link opgeslagen'); render();"
+                            class="px-3 btn-primary text-white rounded-lg text-sm">✓</button>
+                    </div>
+                </div>
+
+                <button onclick="state.showResetConfirm = true; render();" class="w-full py-2 text-red-500 hover:bg-red-500/10 rounded-lg text-sm flex items-center justify-center gap-2">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i> App Resetten
+                </button>
+            </div>
+        `;
+
+        const renderLogModal = () => `
+            <div class="modal" onclick="if(event.target === this) { state.showLog = false; render(); }">
+                <div class="modal-content p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-white">Activiteitenlogboek</h3>
+                        <button onclick="state.showLog = false; render();" class="text-gray-500 hover:text-white">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <div class="max-h-96 overflow-y-auto mb-4">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-white/10">
+                                    <th class="text-left py-2 text-gray-500">Tijdstip</th>
+                                    <th class="text-left py-2 text-gray-500">Actie</th>
+                                    <th class="text-left py-2 text-gray-500">Details</th>
+                                    <th class="text-left py-2 text-gray-500">Device ID</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${state.activityLog.map(log => `
+                                    <tr class="border-b border-white/5">
+                                        <td class="py-2 text-gray-400 text-xs">${new Date(log.timestamp).toLocaleString('nl-NL')}</td>
+                                        <td class="py-2 text-white">${log.action}</td>
+                                        <td class="py-2 text-gray-400">${log.details}</td>
+                                        <td class="py-2 text-green-500 text-xs font-mono">${log.device_id || '-'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    <button onclick="exportLog();" class="w-full py-3 btn-primary text-white rounded-lg flex items-center justify-center gap-2">
+                        <i data-lucide="download" class="w-4 h-4"></i> Exporteer naar CSV
+                    </button>
+                </div>
+            </div>
+        `;
+
+        const renderResetModal = () => `
+            <div class="modal" onclick="if(event.target === this) { state.showResetConfirm = false; render(); }">
+                <div class="modal-content p-6 text-center">
+                    <h3 class="text-xl font-semibold text-white mb-2">Weet je het zeker?</h3>
+                    <p class="text-gray-400 mb-6">Alle bestellingen worden permanent verwijderd.</p>
+                    <div class="flex gap-3">
+                        <button onclick="state.showResetConfirm = false; render();" class="flex-1 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg">
+                            Annuleren
+                        </button>
+                        <button onclick="resetApp();" class="flex-1 py-3 btn-danger text-white rounded-lg">
+                            Ja, reset de app
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Initialize
+        render();
+    </script>
+</body>
+</html>

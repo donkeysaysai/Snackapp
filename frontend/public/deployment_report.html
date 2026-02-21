@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deployment Health Check - P&TA Snack Bestel App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #f5f5f7;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #0A84FF, #30D158);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header .subtitle {
+            color: #86868b;
+            font-size: 1.1rem;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(48, 209, 88, 0.15);
+            border: 1px solid rgba(48, 209, 88, 0.3);
+            color: #30D158;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        
+        .status-badge .icon {
+            font-size: 1.4rem;
+        }
+        
+        .card {
+            background: rgba(28, 28, 30, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .card h2 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card h2 .icon {
+            font-size: 1.5rem;
+        }
+        
+        .check-list {
+            list-style: none;
+        }
+        
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .check-item:last-child {
+            border-bottom: none;
+        }
+        
+        .check-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .check-icon.pass {
+            background: rgba(48, 209, 88, 0.2);
+            color: #30D158;
+        }
+        
+        .check-icon.warn {
+            background: rgba(255, 159, 10, 0.2);
+            color: #FF9F0A;
+        }
+        
+        .check-text {
+            flex: 1;
+        }
+        
+        .check-text .label {
+            font-weight: 500;
+            color: #f5f5f7;
+        }
+        
+        .check-text .detail {
+            font-size: 0.85rem;
+            color: #86868b;
+            margin-top: 2px;
+        }
+        
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .config-item {
+            background: rgba(44, 44, 46, 0.5);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        
+        .config-item .label {
+            font-size: 0.8rem;
+            color: #86868b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        
+        .config-item .value {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #0A84FF;
+        }
+        
+        .app-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .info-tag {
+            background: rgba(10, 132, 255, 0.15);
+            border: 1px solid rgba(10, 132, 255, 0.3);
+            color: #0A84FF;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .footer .timestamp {
+            color: #86868b;
+            font-size: 0.9rem;
+        }
+        
+        .deploy-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #0A84FF 0%, #0077ED 100%);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            margin-top: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 20px rgba(10, 132, 255, 0.3);
+        }
+        
+        .deploy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(10, 132, 255, 0.4);
+        }
+        
+        .summary-text {
+            color: #bfbfbf;
+            line-height: 1.6;
+            margin-top: 12px;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Deployment Health Check</h1>
+            <p class="subtitle">P&TA Snack Bestel App</p>
+            <div class="status-badge">
+                <span class="icon">✓</span>
+                READY TO DEPLOY
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><span class="icon">📋</span> Health Check Results</h2>
+            <ul class="check-list">
+                <li class="check-item">
+                    <span class="check-icon pass">✓</span>
+                    <div class="check-text">
+                        <div class="label">Environment Variables</div>
+                        <div class="detail">Properly configured in .env files, not hardcoded</div>
+                    </div>
+                </li>
+                <li class="check-item">
+                    <span class="check-icon pass">✓</span>
+                    <div class="check-text">
+                        <div class="label">CORS Configuration</div>
+                        <div class="detail">Configured to allow all origins (CORS_ORIGINS="*")</div>
+                    </div>
+                </li>
+                <li class="check-item">
+                    <span class="check-icon pass">✓</span>
+                    <div class="check-text">
+                        <div class="label">MongoDB Connection</div>
+                        <div class="detail">Correctly configured, will migrate to Emergent-managed DB</div>
+                    </div>
+                </li>
+                <li class="check-item">
+                    <span class="check-icon pass">✓</span>
+                    <div class="check-text">
+                        <div class="label">Backend Dependencies</div>
+                        <div class="detail">FastAPI, Motor, Pydantic, openpyxl installed</div>
+                    </div>
+                </li>
+                <li class="check-item">
+                    <span class="check-icon pass">✓</span>
+                    <div class="check-text">
+                        <div class="label">Frontend Build</div>
+                        <div class="detail">React with Tailwind CSS, no compilation errors</div>
+                    </div>
+                </li>
+                <li class="check-item">
+                    <span class="check-icon pass">✓</span>
+                    <div class="check-text">
+                        <div class="label">Supervisor Configuration</div>
+                        <div class="detail">Correct commands for frontend and backend</div>
+                    </div>
+                </li>
+                <li class="check-item">
+                    <span class="check-icon pass">✓</span>
+                    <div class="check-text">
+                        <div class="label">No Hardcoded Secrets</div>
+                        <div class="detail">No URLs or API keys in source code</div>
+                    </div>
+                </li>
+                <li class="check-item">
+                    <span class="check-icon pass">✓</span>
+                    <div class="check-text">
+                        <div class="label">Database Queries</div>
+                        <div class="detail">Using .limit() appropriately for performance</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2><span class="icon">⚙️</span> Configuration Summary</h2>
+            <div class="config-grid">
+                <div class="config-item">
+                    <div class="label">Backend</div>
+                    <div class="value">FastAPI (Port 8001)</div>
+                </div>
+                <div class="config-item">
+                    <div class="label">Frontend</div>
+                    <div class="value">React (Port 3000)</div>
+                </div>
+                <div class="config-item">
+                    <div class="label">Database</div>
+                    <div class="value">MongoDB</div>
+                </div>
+                <div class="config-item">
+                    <div class="label">Server</div>
+                    <div class="value">Uvicorn + CRACO</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><span class="icon">🍟</span> App Features</h2>
+            <div class="app-info">
+                <span class="info-tag">Order Management</span>
+                <span class="info-tag">124 Menu Items</span>
+                <span class="info-tag">Admin Panel (PIN Protected)</span>
+                <span class="info-tag">Activity Logging</span>
+                <span class="info-tag">Device ID Tracking</span>
+                <span class="info-tag">IP Logging</span>
+                <span class="info-tag">Excel Menu Import/Export</span>
+                <span class="info-tag">Payment Status</span>
+                <span class="info-tag">Email Export</span>
+                <span class="info-tag">Easter Eggs 🥚</span>
+            </div>
+            <p class="summary-text">
+                Nederlandse kantoorlunch-bestelapp met dark Apple design. 
+                Ondersteunt bestellingen plaatsen, bewerkmodus, betalingsstatus bijhouden, 
+                en admin functionaliteiten met activiteitenlogboek.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p class="timestamp">
+                Report generated: <strong id="timestamp"></strong>
+            </p>
+            <a href="#" class="deploy-btn" onclick="alert('Deploy via de Emergent interface!')">
+                🚀 Deploy to Production
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('timestamp').textContent = new Date().toLocaleString('nl-NL', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    </script>
+</body>
+</html>

@@ -245,14 +245,14 @@ function App() {
         action,
         details,
         order_id: orderId,
-        device_info: navigator.userAgent,
+        device_info: `${navigator.userAgent} | DeviceID: ${deviceId}`,
       };
       const res = await axios.post(`${API}/activity-log`, entry);
       setActivityLog((prev) => [res.data, ...prev]);
     } catch (error) {
       console.error("Error logging activity:", error);
     }
-  }, []);
+  }, [deviceId]);
 
   // Handle adding item to current order
   const handleAddItem = () => {

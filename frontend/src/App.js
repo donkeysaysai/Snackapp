@@ -82,9 +82,16 @@ const formatPrice = (price) => {
   }).format(price);
 };
 
-// Parse User-Agent to get device/browser info
+// Parse User-Agent to get device/browser info and extract Device ID
 const parseDeviceInfo = (userAgent) => {
-  if (!userAgent) return { device: "Onbekend", browser: "Onbekend" };
+  if (!userAgent) return { device: "Onbekend", browser: "Onbekend", deviceId: "-" };
+  
+  // Extract Device ID if present
+  let deviceId = "-";
+  const deviceIdMatch = userAgent.match(/DeviceID:\s*([A-Z0-9-]+)/i);
+  if (deviceIdMatch) {
+    deviceId = deviceIdMatch[1];
+  }
   
   // Detect device type
   let device = "Desktop";
@@ -104,7 +111,7 @@ const parseDeviceInfo = (userAgent) => {
   else if (/Firefox/i.test(userAgent)) browser = "Firefox";
   else if (/Opera|OPR/i.test(userAgent)) browser = "Opera";
   
-  return { device, browser };
+  return { device, browser, deviceId };
 };
 
 // Category order for display

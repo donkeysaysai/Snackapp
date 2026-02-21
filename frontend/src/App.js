@@ -151,8 +151,11 @@ function App() {
   const [adminCode, setAdminCode] = useState("");
   const [tempPaymentLink, setTempPaymentLink] = useState("");
   const [isLogVisible, setIsLogVisible] = useState(false);
+  const [isMenuManagerVisible, setIsMenuManagerVisible] = useState(false);
   const [isResetConfirmVisible, setIsResetConfirmVisible] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const [isUploadingMenu, setIsUploadingMenu] = useState(false);
+  const fileInputRef = useRef(null);
 
   // Fetch data on mount
   useEffect(() => {

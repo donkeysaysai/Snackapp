@@ -80,6 +80,31 @@ const formatPrice = (price) => {
   }).format(price);
 };
 
+// Parse User-Agent to get device/browser info
+const parseDeviceInfo = (userAgent) => {
+  if (!userAgent) return { device: "Onbekend", browser: "Onbekend" };
+  
+  // Detect device type
+  let device = "Desktop";
+  if (/iPhone/i.test(userAgent)) device = "iPhone";
+  else if (/iPad/i.test(userAgent)) device = "iPad";
+  else if (/Android/i.test(userAgent) && /Mobile/i.test(userAgent)) device = "Android Phone";
+  else if (/Android/i.test(userAgent)) device = "Android Tablet";
+  else if (/Macintosh/i.test(userAgent)) device = "Mac";
+  else if (/Windows/i.test(userAgent)) device = "Windows PC";
+  else if (/Linux/i.test(userAgent)) device = "Linux";
+  
+  // Detect browser
+  let browser = "Onbekend";
+  if (/Edg\//i.test(userAgent)) browser = "Edge";
+  else if (/Chrome/i.test(userAgent) && !/Chromium/i.test(userAgent)) browser = "Chrome";
+  else if (/Safari/i.test(userAgent) && !/Chrome/i.test(userAgent)) browser = "Safari";
+  else if (/Firefox/i.test(userAgent)) browser = "Firefox";
+  else if (/Opera|OPR/i.test(userAgent)) browser = "Opera";
+  
+  return { device, browser };
+};
+
 // Category order for display
 const CATEGORY_ORDER = [
   "SNACKS",

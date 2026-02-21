@@ -514,7 +514,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] pb-24">
+    <div className="min-h-screen bg-[#050505]">
       <Toaster
         position="top-right"
         toastOptions={{

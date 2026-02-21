@@ -500,6 +500,56 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
+  // Download menu as Excel
+  const handleDownloadMenu = async () => {
+    try {
+      const response = await axios.get(`${API}/menu/download`, {
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `menu_${new Date().toISOString().split("T")[0]}.xlsx`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      toast.success("Menu gedownload");
+    } catch (error) {
+      console.error("Error downloading menu:", error);
+      toast.error("Fout bij downloaden menu");
+    }
+  };
+
+  // Upload menu Excel
+  const handleUploadMenu = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingMenu(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await axios.post(`${API}/menu/upload`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      toast.success(response.data.message);
+      logActivity("Menu bijgewerkt", `${response.data.count} items geüpload`);
+      
+      // Refresh menu
+      const menuRes = await axios.get(`${API}/menu`);
+      setMenu(menuRes.data);
+      setIsMenuManagerVisible(false);
+    } catch (error) {
+      console.error("Error uploading menu:", error);
+      toast.error(error.response?.data?.detail || "Fout bij uploaden menu");
+    } finally {
+      setIsUploadingMenu(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   // Export to email
   const handleExportEmail = () => {
     const body = totalOverview

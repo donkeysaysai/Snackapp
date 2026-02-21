@@ -77,6 +77,7 @@ class ActivityLogEntry(BaseModel):
     details: str
     order_id: Optional[str] = None
     device_info: Optional[str] = None
+    client_ip: Optional[str] = None
 
 class ActivityLogCreate(BaseModel):
     action: str

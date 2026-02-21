@@ -1,0 +1,108 @@
+{
+  "project_name": "P&TA Snack Bestel App",
+  "design_identity": {
+    "theme": "dark_mode_apple_pro",
+    "emotional_tone": "Efficient, Premium, Clean, Frictionless",
+    "visual_style": "Deep matte blacks, subtle translucent borders, SF Pro-like typography, vivid distinct accents for actions"
+  },
+  "typography": {
+    "font_family": {
+      "headings": "Manrope, -apple-system, sans-serif",
+      "body": "Inter, -apple-system, sans-serif"
+    },
+    "scale": {
+      "h1": "text-4xl font-semibold tracking-tight",
+      "h2": "text-2xl font-medium tracking-tight",
+      "h3": "text-lg font-medium tracking-normal",
+      "body": "text-sm font-normal leading-relaxed",
+      "label": "text-xs font-medium uppercase tracking-wider text-muted-foreground"
+    }
+  },
+  "colors": {
+    "background": {
+      "app": "#050505",
+      "card": "#151516",
+      "card_hover": "#1C1C1E",
+      "input": "#1C1C1E",
+      "modal": "#1C1C1E"
+    },
+    "text": {
+      "primary": "#F5F5F7",
+      "secondary": "#86868B",
+      "muted": "#6E6E73",
+      "inverse": "#000000"
+    },
+    "accent": {
+      "primary": "#0A84FF",
+      "success": "#30D158",
+      "warning": "#FF9F0A",
+      "destructive": "#FF453A"
+    },
+    "border": {
+      "default": "rgba(255, 255, 255, 0.1)",
+      "active": "rgba(255, 255, 255, 0.2)"
+    }
+  },
+  "layout_strategy": {
+    "type": "bento_grid",
+    "container": "max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8",
+    "grid_structure": "grid grid-cols-1 lg:grid-cols-12 gap-6",
+    "sections": {
+      "order_form": "lg:col-span-4 flex flex-col gap-4 sticky top-6 h-fit",
+      "order_list": "lg:col-span-8 flex flex-col gap-4",
+      "footer": "fixed bottom-0 left-0 right-0 p-4 bg-black/80 backdrop-blur-xl border-t border-white/10 flex justify-between items-center z-50"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-[#0A84FF] hover:bg-[#0077ED] text-white rounded-lg h-10 px-4 font-medium transition-all shadow-[0_0_10px_rgba(10,132,255,0.3)]",
+      "secondary": "bg-[#2C2C2E] hover:bg-[#3A3A3C] text-white rounded-lg h-10 px-4 font-medium border border-white/5",
+      "ghost": "hover:bg-white/10 text-[#86868B] hover:text-white rounded-lg h-10 px-4",
+      "destructive": "bg-[#FF453A]/10 hover:bg-[#FF453A]/20 text-[#FF453A] border border-[#FF453A]/20"
+    },
+    "cards": {
+      "base": "bg-[#151516] border border-white/10 rounded-xl shadow-sm",
+      "interactive": "hover:border-white/20 transition-colors duration-200"
+    },
+    "inputs": {
+      "base": "bg-[#1C1C1E] border-transparent focus:border-[#0A84FF]/50 focus:ring-1 focus:ring-[#0A84FF] rounded-lg h-11 text-white placeholder:text-[#6E6E73]"
+    },
+    "select": {
+      "trigger": "bg-[#1C1C1E] border-transparent rounded-lg h-11 text-white"
+    }
+  },
+  "menu_categories": [
+    "SNACKS", "PATAT", "BURGERS", "VIS SNACKS", "KIP SNACKS", 
+    "VEGA/VEGAN SNACKS", "HUISGEMAAKTE SNACKS", "PATAT SPECIALS", 
+    "STOKBROOD", "LUNCH", "VOORGERECHT", "VIS PLATE", "VLEES PLATE", 
+    "VEGETARISCH PLATE", "DESSERTS", "KOFFIE NA", "KIDS BOX", 
+    "EXTRA", "SAUS", "DRANKEN"
+  ],
+  "visual_enhancers": {
+    "glassmorphism": "backdrop-blur-xl bg-black/70",
+    "borders": "1px solid rgba(255,255,255,0.08)",
+    "shadows": "shadow-lg shadow-black/40",
+    "animation": "transition-all duration-200 ease-out"
+  },
+  "accessibility": {
+    "contrast_check": "Ensure #86868B text is not used on very dark backgrounds for essential reading. Use #BFBFBF if needed.",
+    "focus_states": "Visible blue ring for keyboard navigation"
+  },
+  "instructions_to_main_agent": [
+    "Install 'lucide-react' for all icons.",
+    "Use 'sonner' for all notifications (toasts).",
+    "Ensure 'Manrope' font is imported (from Google Fonts) in index.css.",
+    "Maintain strict adherence to the Dutch terminology provided in the problem statement.",
+    "Implement the 'Settings Modal' with the PIN '1990' hardcoded in frontend or backend validation.",
+    "The 'Footer' must cover the 'Betaling' (Payment) functionality.",
+    "Use 'Intl.NumberFormat' for EUR currency (nl-NL).",
+    "Do not use gradients for backgrounds, keep it flat and matte.",
+    "Ensure the layout is responsive: Stack columns on mobile, side-by-side on desktop."
+  ],
+  "universal_guidelines": [
+    "Do not center align the app container.",
+    "Use specific transitions (e.g., transition-opacity), not transition-all.",
+    "Add data-testid to all interactive elements.",
+    "Do not use emoji icons; use Lucide React icons."
+  ]
+}

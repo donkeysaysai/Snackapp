@@ -131,6 +131,16 @@ const CATEGORY_ORDER = [
   "DRANKEN",
 ];
 
+// Generate or retrieve persistent device ID
+const getDeviceId = () => {
+  let deviceId = localStorage.getItem('pta_device_id');
+  if (!deviceId) {
+    deviceId = 'DEV-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+    localStorage.setItem('pta_device_id', deviceId);
+  }
+  return deviceId;
+};
+
 function App() {
   // State
   const [menu, setMenu] = useState([]);
@@ -138,6 +148,7 @@ function App() {
   const [settings, setSettings] = useState({ payment_link: "", is_edit_mode: false });
   const [activityLog, setActivityLog] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deviceId] = useState(getDeviceId);
 
   // Form state
   const [customerName, setCustomerName] = useState("");

@@ -299,6 +299,108 @@ async def seed_menu():
         await db.menu_items.insert_one(menu_item.model_dump())
     return {"message": f"Seeded {len(MENU_DATA)} menu items"}
 
+@api_router.get("/menu/download")
+async def download_menu_excel():
+    """Download the current menu as Excel file"""
+    menu_items = await db.menu_items.find({}, {"_id": 0}).to_list(1000)
+    
+    # Create workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Menu"
+    
+    # Headers
+    ws.append(["Naam", "Categorie", "Prijs"])
+    
+    # Style headers
+    for cell in ws[1]:
+        cell.font = cell.font.copy(bold=True)
+    
+    # Add data sorted by category then name
+    sorted_items = sorted(menu_items, key=lambda x: (x.get("category", ""), x.get("name", "")))
+    for item in sorted_items:
+        ws.append([item.get("name", ""), item.get("category", ""), item.get("price", 0)])
+    
+    # Auto-adjust column widths
+    for column in ws.columns:
+        max_length = 0
+        column_letter = column[0].column_letter
+        for cell in column:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        ws.column_dimensions[column_letter].width = max_length + 2
+    
+    # Save to bytes
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+    
+    filename = f"menu_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@api_router.post("/menu/upload")
+async def upload_menu_excel(file: UploadFile = File(...)):
+    """Upload Excel file to replace the menu"""
+    if not file.filename.endswith(('.xlsx', '.xls')):
+        raise HTTPException(status_code=400, detail="Alleen Excel bestanden (.xlsx, .xls) zijn toegestaan")
+    
+    try:
+        contents = await file.read()
+        wb = load_workbook(filename=BytesIO(contents))
+        ws = wb.active
+        
+        new_menu_items = []
+        
+        # Skip header row, read data
+        for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+            if row[0] is None:  # Skip empty rows
+                continue
+            
+            name = str(row[0]).strip() if row[0] else ""
+            category = str(row[1]).strip() if row[1] else ""
+            
+            # Parse price - handle both comma and dot decimals
+            price_val = row[2] if len(row) > 2 else 0
+            if isinstance(price_val, str):
+                price_val = price_val.replace(',', '.').replace('€', '').strip()
+            try:
+                price = float(price_val) if price_val else 0
+            except (ValueError, TypeError):
+                price = 0
+            
+            if name and category:
+                new_menu_items.append({
+                    "name": name,
+                    "category": category.upper(),
+                    "price": round(price, 2)
+                })
+        
+        if not new_menu_items:
+            raise HTTPException(status_code=400, detail="Geen geldige menu items gevonden in het bestand")
+        
+        # Replace menu in database
+        await db.menu_items.delete_many({})
+        for item in new_menu_items:
+            menu_item = MenuItem(**item)
+            await db.menu_items.insert_one(menu_item.model_dump())
+        
+        return {
+            "message": f"Menu succesvol bijgewerkt met {len(new_menu_items)} items",
+            "count": len(new_menu_items)
+        }
+    
+    except Exception as e:
+        logger.error(f"Error uploading menu: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Fout bij verwerken bestand: {str(e)}")
+
 # Order endpoints
 @api_router.get("/orders", response_model=List[Order])
 async def get_orders():

@@ -673,6 +673,16 @@ function App() {
                       Bekijk Logboek
                     </Button>
                     <Button
+                      onClick={() => setIsMenuManagerVisible(true)}
+                      variant="secondary"
+                      size="sm"
+                      className="w-full justify-start bg-[#2C2C2E] hover:bg-[#3A3A3C] text-white"
+                      data-testid="menu-manager-button"
+                    >
+                      <FileSpreadsheet className="h-4 w-4 mr-2" />
+                      Menu Beheren
+                    </Button>
+                    <Button
                       onClick={handleAdminLogout}
                       variant="ghost"
                       size="sm"

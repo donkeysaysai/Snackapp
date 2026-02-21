@@ -612,7 +612,7 @@ function App() {
               P&TA Snack Bestel App
             </h1>
             <div className="flex items-center gap-2">
-              <p className="text-sm text-[#86868B]">Voor de lekkerste kantoorlunch</p>
+              <p className="text-sm text-[#86868B]">Voor de perfecte zoutbalans en de beste chemie op de afdeling.</p>
               <span className="text-[#6E6E73]">·</span>
               <a
                 href="https://cafetariarex.nl/"

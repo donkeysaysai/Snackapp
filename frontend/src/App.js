@@ -1014,13 +1014,6 @@ function App() {
           </div>
         </div>
       </main>
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Betaalverzoek openen
-              </a>
-            </Button>
-          </div>
-        </footer>
-      )}
 
       {/* Activity Log Dialog */}
       <Dialog open={isLogVisible} onOpenChange={setIsLogVisible}>

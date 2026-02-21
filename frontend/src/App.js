@@ -1101,7 +1101,7 @@ function App() {
 
       {/* Activity Log Dialog */}
       <Dialog open={isLogVisible} onOpenChange={setIsLogVisible}>
-        <DialogContent className="bg-[#1C1C1E] border-white/10 text-white max-w-5xl max-h-[80vh]">
+        <DialogContent className="bg-[#1C1C1E] border-white/10 text-white max-w-6xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle className="text-xl">Activiteitenlogboek</DialogTitle>
             <DialogDescription className="text-[#86868B]">
@@ -1116,6 +1116,7 @@ function App() {
                   <TableHead className="text-[#86868B]">Actie</TableHead>
                   <TableHead className="text-[#86868B]">Details</TableHead>
                   <TableHead className="text-[#86868B]">Apparaat</TableHead>
+                  <TableHead className="text-[#86868B]">Device ID</TableHead>
                   <TableHead className="text-[#86868B]">IP-adres</TableHead>
                 </TableRow>
               </TableHeader>
@@ -1134,6 +1135,9 @@ function App() {
                           <span className="text-[#BFBFBF]">{deviceInfo.device}</span>
                           <span className="text-[#6E6E73]">{deviceInfo.browser}</span>
                         </div>
+                      </TableCell>
+                      <TableCell className="text-[#30D158] text-xs font-mono">
+                        {deviceInfo.deviceId}
                       </TableCell>
                       <TableCell className="text-[#0A84FF] text-xs font-mono">
                         {log.client_ip || "-"}

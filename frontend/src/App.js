@@ -296,7 +296,20 @@ function App() {
       const res = await axios.post(`${API}/orders`, orderData);
       setOrders([...orders, res.data]);
       logActivity("Bestelling geplaatst", `${customerName} heeft besteld`, res.data.id);
-      toast.success(`Bestelling van ${customerName} is geplaatst!`);
+      
+      // Easter egg for Jilles
+      if (customerName.trim().toLowerCase() === "jilles") {
+        toast.success("Welkom terug, Snackkoning Jilles! 👑", {
+          duration: 4000,
+          style: {
+            background: "linear-gradient(135deg, #FFD700 0%, #FFA500 100%)",
+            color: "#000",
+            fontWeight: "bold",
+          },
+        });
+      } else {
+        toast.success(`Bestelling van ${customerName} is geplaatst!`);
+      }
 
       // Reset form
       setCustomerName("");

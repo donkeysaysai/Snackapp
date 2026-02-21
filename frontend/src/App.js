@@ -499,15 +499,20 @@ function App() {
 
   // Export activity log to CSV
   const handleExportLog = () => {
-    const headers = ["Timestamp", "Action", "Details", "Order ID", "Device Info", "IP Address"];
-    const rows = activityLog.map((log) => [
-      log.timestamp,
-      log.action,
-      log.details,
-      log.order_id || "",
-      log.device_info || "",
-      log.client_ip || "",
-    ]);
+    const headers = ["Timestamp", "Action", "Details", "Order ID", "Device", "Browser", "Device ID", "IP Address"];
+    const rows = activityLog.map((log) => {
+      const deviceInfo = parseDeviceInfo(log.device_info);
+      return [
+        log.timestamp,
+        log.action,
+        log.details,
+        log.order_id || "",
+        deviceInfo.device,
+        deviceInfo.browser,
+        deviceInfo.deviceId,
+        log.client_ip || "",
+      ];
+    });
     const csv = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);

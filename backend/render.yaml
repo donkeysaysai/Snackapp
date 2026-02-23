@@ -1,0 +1,20 @@
+# Render.com Blueprint for P&TA Snack Bestel App Backend
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: pta-snack-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: MONGODB_URI
+        sync: false  # You'll set this manually with your MongoDB Atlas connection string
+      - key: DB_NAME
+        value: pta_snack_app
+      - key: CORS_ORIGINS
+        sync: false  # Set to your GitHub Pages URL, e.g., https://username.github.io
+      - key: PYTHON_VERSION
+        value: "3.11"

@@ -16,13 +16,21 @@ from openpyxl import Workbook, load_workbook
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
+# MongoDB connection - support both MONGO_URL and MONGODB_URI (Render uses MONGODB_URI)
+mongo_url = os.environ.get('MONGO_URL') or os.environ.get('MONGODB_URI')
+if not mongo_url:
+    raise ValueError("No MongoDB connection string found. Set MONGO_URL or MONGODB_URI environment variable.")
+
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db_name = os.environ.get('DB_NAME', 'pta_snack_app')
+db = client[db_name]
 
 # Create the main app
-app = FastAPI()
+app = FastAPI(
+    title="P&TA Snack Bestel App API",
+    description="Backend API voor de P&TA Snack Bestel App",
+    version="1.0.0"
+)
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")

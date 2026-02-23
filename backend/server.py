@@ -525,13 +525,25 @@ async def reset_app():
 # Include the router in the main app
 app.include_router(api_router)
 
+# CORS configuration - allow GitHub Pages and localhost for development
+cors_origins = os.environ.get('CORS_ORIGINS', '*')
+if cors_origins == '*':
+    allow_origins = ["*"]
+else:
+    allow_origins = [origin.strip() for origin in cors_origins.split(',')]
+
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=allow_origins,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Health check endpoint for Render
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "service": "P&TA Snack Bestel App API"}
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

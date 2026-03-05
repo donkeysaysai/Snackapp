@@ -159,6 +159,7 @@ function App() {
 
   // Form state
   const [customerName, setCustomerName] = useState("");
+  const [orderRemarks, setOrderRemarks] = useState("");
   const [currentOrderItems, setCurrentOrderItems] = useState([
     { menu_item_id: "", name: "", quantity: 1, price: 0 },
   ]);
@@ -315,6 +316,7 @@ function App() {
       const orderData = {
         customer_name: customerName.trim(),
         items: validItems,
+        remarks: orderRemarks.trim() || null,
       };
       const res = await axios.post(`${API}/orders`, orderData);
       setOrders([...orders, res.data]);
@@ -348,6 +350,7 @@ function App() {
 
       // Reset form
       setCustomerName("");
+      setOrderRemarks("");
       setCurrentOrderItems([{ menu_item_id: "", name: "", quantity: 1, price: 0 }]);
     } catch (error) {
       console.error("Error placing order:", error);
@@ -575,11 +578,21 @@ function App() {
 
   // Export to email
   const handleExportEmail = () => {
+    // Build order summary
     const body = totalOverview
       .map((item) => `${item.quantity}x ${item.name} - ${formatPrice(item.subtotal)}`)
       .join("\n");
+    
+    // Collect all remarks from orders
+    const remarksSection = orders
+      .filter((order) => order.remarks && order.remarks.trim())
+      .map((order) => `• ${order.customer_name}: ${order.remarks}`)
+      .join("\n");
+    
     const totalText = `\n\nTotaal: ${formatPrice(grandTotal)}`;
-    const mailto = `mailto:info@cafetariarex.nl?subject=Bestelling P%26TA&body=${encodeURIComponent(body + totalText)}`;
+    const remarksText = remarksSection ? `\n\n--- Opmerkingen ---\n${remarksSection}` : "";
+    
+    const mailto = `mailto:info@cafetariarex.nl?subject=Bestelling P%26TA&body=${encodeURIComponent(body + totalText + remarksText)}`;
     window.location.href = mailto;
   };
 
@@ -859,6 +872,20 @@ function App() {
                   </Button>
                 </div>
 
+                {/* Remarks */}
+                <div>
+                  <Label className="text-xs uppercase tracking-wider text-[#86868B] mb-2 block">
+                    Opmerkingen (optioneel)
+                  </Label>
+                  <Input
+                    placeholder="Bijv. zonder ui, extra saus, allergieën..."
+                    value={orderRemarks}
+                    onChange={(e) => setOrderRemarks(e.target.value)}
+                    className="h-11 bg-[#1C1C1E] border-transparent focus:border-[#0A84FF]/50 focus:ring-1 focus:ring-[#0A84FF] text-white placeholder:text-[#6E6E73]"
+                    data-testid="order-remarks-input"
+                  />
+                </div>
+
                 {/* Place Order Button */}
                 <Button
                   onClick={handlePlaceOrder}
@@ -954,6 +981,11 @@ function App() {
                                   )}
                                 </div>
                               ))}
+                              {order.remarks && (
+                                <div className="mt-1 text-xs text-[#FF9F0A] italic">
+                                  💬 {order.remarks}
+                                </div>
+                              )}
                             </TableCell>
                             <TableCell className="text-right text-white font-medium">
                               {formatPrice(order.total_price)}

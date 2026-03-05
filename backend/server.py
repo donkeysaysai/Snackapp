@@ -66,6 +66,7 @@ class OrderItem(BaseModel):
 class OrderCreate(BaseModel):
     customer_name: str
     items: List[OrderItemCreate]
+    remarks: Optional[str] = None
 
 class Order(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -73,12 +74,14 @@ class Order(BaseModel):
     customer_name: str
     items: List[OrderItem]
     total_price: float
+    remarks: Optional[str] = None
     is_paid: bool = False
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 class OrderUpdate(BaseModel):
     items: Optional[List[OrderItemCreate]] = None
     is_paid: Optional[bool] = None
+    remarks: Optional[str] = None
 
 class ActivityLogEntry(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -423,7 +426,8 @@ async def create_order(order_data: OrderCreate):
     order = Order(
         customer_name=order_data.customer_name,
         items=items,
-        total_price=total_price
+        total_price=total_price,
+        remarks=order_data.remarks
     )
     
     await db.orders.insert_one(order.model_dump())
@@ -444,6 +448,9 @@ async def update_order(order_id: str, order_update: OrderUpdate):
     
     if order_update.is_paid is not None:
         update_data["is_paid"] = order_update.is_paid
+    
+    if order_update.remarks is not None:
+        update_data["remarks"] = order_update.remarks
     
     if update_data:
         await db.orders.update_one({"id": order_id}, {"$set": update_data})

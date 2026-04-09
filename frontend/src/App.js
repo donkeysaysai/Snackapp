@@ -152,7 +152,7 @@ function App() {
   // State
   const [menu, setMenu] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [settings, setSettings] = useState({ payment_link: "", is_edit_mode: false });
+  const [settings, setSettings] = useState({ payment_link: "", is_edit_mode: false, order_email: "info@cafetariarex.nl" });
   const [activityLog, setActivityLog] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deviceId] = useState(getDeviceId);
@@ -169,6 +169,7 @@ function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminCode, setAdminCode] = useState("");
   const [tempPaymentLink, setTempPaymentLink] = useState("");
+  const [tempOrderEmail, setTempOrderEmail] = useState("");
   const [isLogVisible, setIsLogVisible] = useState(false);
   const [isMenuManagerVisible, setIsMenuManagerVisible] = useState(false);
   const [isResetConfirmVisible, setIsResetConfirmVisible] = useState(false);
@@ -193,6 +194,7 @@ function App() {
       setOrders(ordersRes.data);
       setSettings(settingsRes.data);
       setTempPaymentLink(settingsRes.data.payment_link || "");
+      setTempOrderEmail(settingsRes.data.order_email || "info@cafetariarex.nl");
       setActivityLog(logRes.data);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -320,7 +322,11 @@ function App() {
       };
       const res = await axios.post(`${API}/orders`, orderData);
       setOrders([...orders, res.data]);
-      logActivity("Bestelling geplaatst", `${customerName} heeft besteld`, res.data.id);
+      
+      // Create detailed log with ordered items
+      const itemsList = validItems.map(item => `${item.quantity}x ${item.name}`).join(", ");
+      const remarksText = orderRemarks.trim() ? ` (${orderRemarks.trim()})` : "";
+      logActivity("Bestelling geplaatst", `${customerName}: ${itemsList}${remarksText}`, res.data.id);
       
       const nameLower = customerName.trim().toLowerCase();
       
@@ -578,22 +584,35 @@ function App() {
 
   // Export to email
   const handleExportEmail = () => {
-    // Build order summary
-    const body = totalOverview
+    // Build order summary with remarks inline
+    const orderLines = orders.map((order) => {
+      const itemsText = order.items.map((item) => `${item.quantity}x ${item.name}`).join(", ");
+      const remarksText = order.remarks ? ` - Opmerking: ${order.remarks}` : "";
+      return `${order.customer_name}: ${itemsText}${remarksText}`;
+    }).join("\n");
+    
+    // Build totals
+    const totalsText = totalOverview
       .map((item) => `${item.quantity}x ${item.name} - ${formatPrice(item.subtotal)}`)
       .join("\n");
     
-    // Collect all remarks from orders
-    const remarksSection = orders
-      .filter((order) => order.remarks && order.remarks.trim())
-      .map((order) => `• ${order.customer_name}: ${order.remarks}`)
-      .join("\n");
+    const body = `--- Bestellingen per persoon ---\n${orderLines}\n\n--- Totaaloverzicht ---\n${totalsText}\n\nTotaal: ${formatPrice(grandTotal)}`;
     
-    const totalText = `\n\nTotaal: ${formatPrice(grandTotal)}`;
-    const remarksText = remarksSection ? `\n\n--- Opmerkingen ---\n${remarksSection}` : "";
-    
-    const mailto = `mailto:info@cafetariarex.nl?subject=Bestelling P%26TA&body=${encodeURIComponent(body + totalText + remarksText)}`;
+    const emailAddress = settings.order_email || "info@cafetariarex.nl";
+    const mailto = `mailto:${emailAddress}?subject=Bestelling P%26TA&body=${encodeURIComponent(body)}`;
     window.location.href = mailto;
+  };
+
+  // Save order email
+  const handleSaveOrderEmail = async () => {
+    try {
+      const res = await axios.put(`${API}/settings`, { order_email: tempOrderEmail });
+      setSettings(res.data);
+      logActivity("Instellingen gewijzigd", "Bestel e-mail bijgewerkt");
+      toast.success("E-mailadres opgeslagen");
+    } catch (error) {
+      toast.error("Fout bij opslaan e-mailadres");
+    }
   };
 
   if (loading) {
@@ -761,6 +780,33 @@ function App() {
 
               <DropdownMenuSeparator className="bg-white/10" />
 
+              {/* Order Email */}
+              <div className="px-2 py-2">
+                <Label className="text-xs uppercase tracking-wider text-[#86868B] mb-2 block">
+                  Bestel E-mail
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="email"
+                    placeholder="info@cafetariarex.nl"
+                    value={tempOrderEmail}
+                    onChange={(e) => setTempOrderEmail(e.target.value)}
+                    className="h-9 bg-[#2C2C2E] border-transparent text-white placeholder:text-[#6E6E73]"
+                    data-testid="order-email-input"
+                  />
+                  <Button
+                    onClick={handleSaveOrderEmail}
+                    size="sm"
+                    className="bg-[#0A84FF] hover:bg-[#0077ED] text-white"
+                    data-testid="save-order-email-button"
+                  >
+                    <Check className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <DropdownMenuSeparator className="bg-white/10" />
+
               {/* Reset Button */}
               <DropdownMenuItem
                 onClick={() => setIsResetConfirmVisible(true)}
@@ -918,13 +964,13 @@ function App() {
                 {orders.length === 0 ? (
                   <p className="text-[#6E6E73] text-center py-8">Nog geen bestellingen...</p>
                 ) : (
-                  <ScrollArea className="max-h-[400px]">
+                  <div className="max-h-[350px] overflow-y-auto scrollbar-thin">
                     <Table>
                       <TableHeader>
                         <TableRow className="border-white/10 hover:bg-transparent">
-                          <TableHead className="text-[#86868B]">Naam</TableHead>
-                          <TableHead className="text-[#86868B]">Bestelling</TableHead>
-                          <TableHead className="text-[#86868B] text-right">Totaalprijs</TableHead>
+                          <TableHead className="text-[#86868B] sticky top-0 bg-[#151516]">Naam</TableHead>
+                          <TableHead className="text-[#86868B] sticky top-0 bg-[#151516]">Bestelling</TableHead>
+                          <TableHead className="text-[#86868B] text-right sticky top-0 bg-[#151516]">Totaalprijs</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -934,7 +980,7 @@ function App() {
                             className="border-white/10 hover:bg-white/5"
                             data-testid={`order-row-${order.id}`}
                           >
-                            <TableCell className="font-medium text-white">
+                            <TableCell className="font-medium text-white align-top">
                               {order.customer_name}
                             </TableCell>
                             <TableCell className="text-[#BFBFBF]">
@@ -982,19 +1028,19 @@ function App() {
                                 </div>
                               ))}
                               {order.remarks && (
-                                <div className="mt-1 text-xs text-[#FF9F0A] italic">
-                                  💬 {order.remarks}
-                                </div>
+                                <span className="text-xs text-[#FF9F0A] italic ml-1">
+                                  — {order.remarks}
+                                </span>
                               )}
                             </TableCell>
-                            <TableCell className="text-right text-white font-medium">
+                            <TableCell className="text-right text-white font-medium align-top">
                               {formatPrice(order.total_price)}
                             </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
                     </Table>
-                  </ScrollArea>
+                  </div>
                 )}
               </CardContent>
             </Card>

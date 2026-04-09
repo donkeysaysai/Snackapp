@@ -20,6 +20,7 @@ import {
   CreditCard,
   Upload,
   FileSpreadsheet,
+  Mail,
 } from "lucide-react";
 import {
   Dialog,
@@ -152,7 +153,14 @@ function App() {
   // State
   const [menu, setMenu] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [settings, setSettings] = useState({ payment_link: "", is_edit_mode: false, order_email: "info@cafetariarex.nl" });
+  const [settings, setSettings] = useState({ 
+    payment_link: "", 
+    is_edit_mode: false, 
+    order_email: "info@cafetariarex.nl",
+    email_subject: "Bestelling P&TA",
+    email_intro: "Hierbij de bestelling voor vandaag:",
+    email_outro: "Graag zo snel mogelijk bezorgen. Alvast bedankt!"
+  });
   const [activityLog, setActivityLog] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deviceId] = useState(getDeviceId);
@@ -172,6 +180,10 @@ function App() {
   const [tempOrderEmail, setTempOrderEmail] = useState("");
   const [isLogVisible, setIsLogVisible] = useState(false);
   const [isMenuManagerVisible, setIsMenuManagerVisible] = useState(false);
+  const [isEmailTemplateVisible, setIsEmailTemplateVisible] = useState(false);
+  const [tempEmailSubject, setTempEmailSubject] = useState("");
+  const [tempEmailIntro, setTempEmailIntro] = useState("");
+  const [tempEmailOutro, setTempEmailOutro] = useState("");
   const [isResetConfirmVisible, setIsResetConfirmVisible] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [isUploadingMenu, setIsUploadingMenu] = useState(false);
@@ -195,6 +207,9 @@ function App() {
       setSettings(settingsRes.data);
       setTempPaymentLink(settingsRes.data.payment_link || "");
       setTempOrderEmail(settingsRes.data.order_email || "info@cafetariarex.nl");
+      setTempEmailSubject(settingsRes.data.email_subject || "Bestelling P&TA");
+      setTempEmailIntro(settingsRes.data.email_intro || "Hierbij de bestelling voor vandaag:");
+      setTempEmailOutro(settingsRes.data.email_outro || "Graag zo snel mogelijk bezorgen. Alvast bedankt!");
       setActivityLog(logRes.data);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -596,10 +611,15 @@ function App() {
       .map((item) => `${item.quantity}x ${item.name} - ${formatPrice(item.subtotal)}`)
       .join("\n");
     
-    const body = `--- Bestellingen per persoon ---\n${orderLines}\n\n--- Totaaloverzicht ---\n${totalsText}\n\nTotaal: ${formatPrice(grandTotal)}`;
+    // Use customizable email template
+    const intro = settings.email_intro || "Hierbij de bestelling voor vandaag:";
+    const outro = settings.email_outro || "Graag zo snel mogelijk bezorgen. Alvast bedankt!";
+    const subject = settings.email_subject || "Bestelling P&TA";
+    
+    const body = `${intro}\n\n--- Bestellingen per persoon ---\n${orderLines}\n\n--- Totaaloverzicht ---\n${totalsText}\n\nTotaal: ${formatPrice(grandTotal)}\n\n${outro}`;
     
     const emailAddress = settings.order_email || "info@cafetariarex.nl";
-    const mailto = `mailto:${emailAddress}?subject=Bestelling P%26TA&body=${encodeURIComponent(body)}`;
+    const mailto = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.location.href = mailto;
   };
 
@@ -612,6 +632,23 @@ function App() {
       toast.success("E-mailadres opgeslagen");
     } catch (error) {
       toast.error("Fout bij opslaan e-mailadres");
+    }
+  };
+
+  // Save email template
+  const handleSaveEmailTemplate = async () => {
+    try {
+      const res = await axios.put(`${API}/settings`, { 
+        email_subject: tempEmailSubject,
+        email_intro: tempEmailIntro,
+        email_outro: tempEmailOutro
+      });
+      setSettings(res.data);
+      logActivity("Instellingen gewijzigd", "E-mail template bijgewerkt");
+      toast.success("E-mail template opgeslagen");
+      setIsEmailTemplateVisible(false);
+    } catch (error) {
+      toast.error("Fout bij opslaan e-mail template");
     }
   };
 
@@ -803,6 +840,16 @@ function App() {
                     <Check className="h-4 w-4" />
                   </Button>
                 </div>
+                <Button
+                  onClick={() => setIsEmailTemplateVisible(true)}
+                  variant="ghost"
+                  size="sm"
+                  className="w-full mt-2 justify-start text-[#86868B] hover:text-white hover:bg-white/10"
+                  data-testid="email-template-button"
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  E-mail Tekst Aanpassen
+                </Button>
               </div>
 
               <DropdownMenuSeparator className="bg-white/10" />
@@ -1239,6 +1286,99 @@ function App() {
             >
               <Download className="h-4 w-4 mr-2" />
               Exporteer naar CSV
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Email Template Dialog */}
+      <Dialog open={isEmailTemplateVisible} onOpenChange={setIsEmailTemplateVisible}>
+        <DialogContent className="bg-[#1C1C1E] border-white/10 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <Mail className="h-5 w-5 text-[#0A84FF]" />
+              E-mail Tekst Aanpassen
+            </DialogTitle>
+            <DialogDescription className="text-[#86868B]">
+              Pas de tekst van de bestelmail aan.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {/* Subject */}
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-[#86868B] mb-2 block">
+                Onderwerp
+              </Label>
+              <Input
+                placeholder="Bestelling P&TA"
+                value={tempEmailSubject}
+                onChange={(e) => setTempEmailSubject(e.target.value)}
+                className="bg-[#2C2C2E] border-transparent text-white placeholder:text-[#6E6E73]"
+                data-testid="email-subject-input"
+              />
+            </div>
+
+            {/* Intro text */}
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-[#86868B] mb-2 block">
+                Introductie tekst
+              </Label>
+              <textarea
+                placeholder="Hierbij de bestelling voor vandaag:"
+                value={tempEmailIntro}
+                onChange={(e) => setTempEmailIntro(e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2 rounded-md bg-[#2C2C2E] border-transparent text-white placeholder:text-[#6E6E73] resize-none focus:outline-none focus:ring-1 focus:ring-[#0A84FF]"
+                data-testid="email-intro-input"
+              />
+            </div>
+
+            {/* Preview */}
+            <div className="p-3 rounded-lg bg-[#0A84FF]/10 border border-[#0A84FF]/20">
+              <p className="text-xs text-[#0A84FF] mb-1">Voorbeeld:</p>
+              <p className="text-xs text-[#BFBFBF] italic whitespace-pre-line">
+                {tempEmailIntro || "Hierbij de bestelling voor vandaag:"}{"\n\n"}
+                --- Bestellingen per persoon ---{"\n"}
+                Pieter: 2x Kroket{"\n\n"}
+                --- Totaaloverzicht ---{"\n"}
+                2x Kroket - € 5,00{"\n\n"}
+                Totaal: € 5,00{"\n\n"}
+                {tempEmailOutro || "Graag zo snel mogelijk bezorgen. Alvast bedankt!"}
+              </p>
+            </div>
+
+            {/* Outro text */}
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-[#86868B] mb-2 block">
+                Afsluiting tekst
+              </Label>
+              <textarea
+                placeholder="Graag zo snel mogelijk bezorgen. Alvast bedankt!"
+                value={tempEmailOutro}
+                onChange={(e) => setTempEmailOutro(e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2 rounded-md bg-[#2C2C2E] border-transparent text-white placeholder:text-[#6E6E73] resize-none focus:outline-none focus:ring-1 focus:ring-[#0A84FF]"
+                data-testid="email-outro-input"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setIsEmailTemplateVisible(false)}
+              className="text-[#86868B] hover:text-white"
+            >
+              Annuleren
+            </Button>
+            <Button
+              onClick={handleSaveEmailTemplate}
+              className="bg-[#0A84FF] hover:bg-[#0077ED] text-white"
+              data-testid="save-email-template-button"
+            >
+              <Check className="h-4 w-4 mr-2" />
+              Opslaan
             </Button>
           </DialogFooter>
         </DialogContent>

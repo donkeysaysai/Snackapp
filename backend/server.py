@@ -105,11 +105,17 @@ class AppSettings(BaseModel):
     payment_link: str = ""
     is_edit_mode: bool = False
     order_email: str = "info@cafetariarex.nl"
+    email_subject: str = "Bestelling P&TA"
+    email_intro: str = "Hierbij de bestelling voor vandaag:"
+    email_outro: str = "Graag zo snel mogelijk bezorgen. Alvast bedankt!"
 
 class AppSettingsUpdate(BaseModel):
     payment_link: Optional[str] = None
     is_edit_mode: Optional[bool] = None
     order_email: Optional[str] = None
+    email_subject: Optional[str] = None
+    email_intro: Optional[str] = None
+    email_outro: Optional[str] = None
 
 class AdminVerify(BaseModel):
     pin: str
@@ -513,6 +519,12 @@ async def update_settings(settings_update: AppSettingsUpdate):
         update_data["is_edit_mode"] = settings_update.is_edit_mode
     if settings_update.order_email is not None:
         update_data["order_email"] = settings_update.order_email
+    if settings_update.email_subject is not None:
+        update_data["email_subject"] = settings_update.email_subject
+    if settings_update.email_intro is not None:
+        update_data["email_intro"] = settings_update.email_intro
+    if settings_update.email_outro is not None:
+        update_data["email_outro"] = settings_update.email_outro
     
     if update_data:
         await db.app_settings.update_one({"id": "app_settings"}, {"$set": update_data})

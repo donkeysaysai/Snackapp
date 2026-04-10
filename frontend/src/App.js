@@ -599,16 +599,42 @@ function App() {
 
   // Export to email
   const handleExportEmail = () => {
-    // Build order summary with remarks inline
-    const orderLines = orders.map((order) => {
-      const itemsText = order.items.map((item) => `${item.quantity}x ${item.name}`).join(", ");
-      const remarksText = order.remarks ? ` - Opmerking: ${order.remarks}` : "";
-      return `${order.customer_name}: ${itemsText}${remarksText}`;
-    }).join("\n");
+    // Build totals with remarks separated
+    // Group items by name + remarks combination
+    const itemsWithRemarks = {};
     
-    // Build totals
-    const totalsText = totalOverview
-      .map((item) => `${item.quantity}x ${item.name} - ${formatPrice(item.subtotal)}`)
+    orders.forEach((order) => {
+      order.items.forEach((item) => {
+        // Create a unique key: item name + remarks (if any from the order)
+        const remarks = order.remarks?.trim() || "";
+        const key = remarks ? `${item.name}|||${remarks}` : item.name;
+        
+        if (!itemsWithRemarks[key]) {
+          itemsWithRemarks[key] = {
+            name: item.name,
+            remarks: remarks,
+            quantity: 0,
+            price: item.price
+          };
+        }
+        itemsWithRemarks[key].quantity += item.quantity;
+      });
+    });
+    
+    // Sort: items without remarks first, then with remarks
+    const sortedItems = Object.values(itemsWithRemarks).sort((a, b) => {
+      if (!a.remarks && b.remarks) return -1;
+      if (a.remarks && !b.remarks) return 1;
+      return a.name.localeCompare(b.name);
+    });
+    
+    // Build the totals text
+    const totalsText = sortedItems
+      .map((item) => {
+        const remarksText = item.remarks ? ` - ${item.remarks}` : "";
+        const subtotal = item.quantity * item.price;
+        return `${item.quantity}x ${item.name}${remarksText} - ${formatPrice(subtotal)}`;
+      })
       .join("\n");
     
     // Use customizable email template
@@ -616,7 +642,7 @@ function App() {
     const outro = settings.email_outro || "Graag zo snel mogelijk bezorgen. Alvast bedankt!";
     const subject = settings.email_subject || "Bestelling P&TA";
     
-    const body = `${intro}\n\n--- Bestellingen per persoon ---\n${orderLines}\n\n--- Totaaloverzicht ---\n${totalsText}\n\nTotaal: ${formatPrice(grandTotal)}\n\n${outro}`;
+    const body = `${intro}\n\n${totalsText}\n\nTotaal: ${formatPrice(grandTotal)}\n\n${outro}`;
     
     const emailAddress = settings.order_email || "info@cafetariarex.nl";
     const mailto = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -1339,11 +1365,10 @@ function App() {
               <p className="text-xs text-[#0A84FF] mb-1">Voorbeeld:</p>
               <p className="text-xs text-[#BFBFBF] italic whitespace-pre-line">
                 {tempEmailIntro || "Hierbij de bestelling voor vandaag:"}{"\n\n"}
-                --- Bestellingen per persoon ---{"\n"}
-                Pieter: 2x Kroket{"\n\n"}
-                --- Totaaloverzicht ---{"\n"}
-                2x Kroket - € 5,00{"\n\n"}
-                Totaal: € 5,00{"\n\n"}
+                2x Kroket - € 5,00{"\n"}
+                1x Kroket - zonder mosterd - € 2,50{"\n"}
+                1x Frikandel - € 2,25{"\n\n"}
+                Totaal: € 9,75{"\n\n"}
                 {tempEmailOutro || "Graag zo snel mogelijk bezorgen. Alvast bedankt!"}
               </p>
             </div>
